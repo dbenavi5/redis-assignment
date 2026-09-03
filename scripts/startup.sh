@@ -126,7 +126,7 @@ echo "Applying FastAPI Deployment..."
 kubectl apply -f "${K8S_DIR}/deployment.yaml"
 
 echo
-echo "Applying FastAPI NodePort Service..."
+echo "Applying FastAPI ClusterIP Service..."
 
 kubectl apply -f "${K8S_DIR}/service.yaml"
 
@@ -145,9 +145,9 @@ echo "========================================"
 echo " Startup complete"
 echo "========================================"
 echo
-echo "FastAPI:"
-echo "  http://localhost:8080"
+echo "FastAPI is currently exposed only inside Kubernetes."
 echo
-echo "Swagger UI:"
-echo "  http://localhost:8080/docs"
+echo "For temporary local access, run:"
+echo
+echo "  kubectl port-forward service/python-api 8080:80"
 echo
