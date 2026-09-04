@@ -3,7 +3,9 @@ import redis
 import os
 
 
-app = FastAPI()
+app = FastAPI(
+    root_path="/api"
+)
 
 
 # Redis connection settings.

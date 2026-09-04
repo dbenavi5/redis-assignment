@@ -12,6 +12,10 @@ echo " Redis Assignment - Application Cleanup"
 echo "========================================"
 echo
 
+echo "Deleting FastAPI Ingress..."
+kubectl delete -f "${K8S_DIR}/ingress.yaml" --ignore-not-found
+
+echo
 echo "Deleting FastAPI Service..."
 kubectl delete -f "${K8S_DIR}/service.yaml" --ignore-not-found
 
@@ -45,4 +49,5 @@ echo " Application cleanup complete"
 echo "========================================"
 echo
 echo "The kind cluster was NOT deleted."
+echo "The NGINX Ingress Controller was NOT deleted."
 echo

@@ -2,10 +2,7 @@
 
 set -e
 
-LOCAL_PORT="8080"
-SERVICE_NAME="python-api"
-SERVICE_PORT="80"
-BASE_URL="http://localhost:${LOCAL_PORT}"
+BASE_URL="http://localhost/api"
 
 echo
 echo "========================================"
@@ -13,42 +10,14 @@ echo " Redis Assignment - API Test"
 echo "========================================"
 echo
 
-echo "Starting temporary port-forward..."
-
-kubectl port-forward \
-    "service/${SERVICE_NAME}" \
-    "${LOCAL_PORT}:${SERVICE_PORT}" \
-    >/tmp/redis-assignment-port-forward.log 2>&1 &
-
-PORT_FORWARD_PID=$!
-
-cleanup() {
-    if kill -0 "${PORT_FORWARD_PID}" >/dev/null 2>&1; then
-        kill "${PORT_FORWARD_PID}" >/dev/null 2>&1 || true
-    fi
-}
-
-trap cleanup EXIT
-
-sleep 2
-
-if ! kill -0 "${PORT_FORWARD_PID}" >/dev/null 2>&1; then
-    echo "ERROR: port-forward failed to start."
-    cat /tmp/redis-assignment-port-forward.log
-    exit 1
-fi
-
-echo "Port-forward is running."
-echo
-
-echo "Testing FastAPI root endpoint..."
+echo "Testing FastAPI through NGINX Ingress..."
 
 curl --fail --silent --show-error \
-    "${BASE_URL}/"
+    "${BASE_URL}"
 
 echo
 echo
-echo "FastAPI root endpoint is reachable."
+echo "FastAPI Ingress route is reachable."
 echo
 
 read -r -p "Enter the key: " key

@@ -2,8 +2,6 @@
 
 set -e
 
-CLUSTER_NAME="redis-cluster"
-
 echo
 echo "========================================"
 echo " Redis Assignment - Kubernetes Status"
@@ -22,20 +20,28 @@ echo "Kubernetes nodes:"
 kubectl get nodes
 
 echo
-echo "Pods:"
+echo "Application Pods:"
 kubectl get pods -o wide
 
 echo
-echo "Services:"
+echo "Application Services:"
 kubectl get services
 
 echo
-echo "Deployments:"
+echo "Application Deployments:"
 kubectl get deployments
 
 echo
 echo "PersistentVolumeClaims:"
 kubectl get pvc
+
+echo
+echo "Ingress resources:"
+kubectl get ingress
+
+echo
+echo "NGINX Ingress Controller:"
+kubectl get pods -n ingress-nginx
 
 echo
 echo "EndpointSlices:"

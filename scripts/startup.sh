@@ -68,6 +68,34 @@ echo "Checking Kubernetes node..."
 kubectl get nodes
 
 echo
+echo "Checking NGINX Ingress Controller..."
+
+if ! kubectl get namespace ingress-nginx >/dev/null 2>&1; then
+    echo "ERROR: ingress-nginx is not installed."
+    echo
+    echo "Install the NGINX Ingress Controller before running startup.sh."
+    exit 1
+fi
+
+if ! kubectl get deployment \
+    ingress-nginx-controller \
+    -n ingress-nginx >/dev/null 2>&1; then
+
+    echo "ERROR: ingress-nginx controller Deployment was not found."
+    exit 1
+fi
+
+echo "NGINX Ingress Controller is installed."
+
+echo
+echo "Waiting for NGINX Ingress Controller..."
+
+kubectl rollout status \
+    deployment/ingress-nginx-controller \
+    -n ingress-nginx \
+    --timeout=120s
+
+echo
 echo "Checking local FastAPI Docker image..."
 
 if ! docker image inspect "${IMAGE_NAME}" >/dev/null 2>&1; then
@@ -87,27 +115,22 @@ kind load docker-image "${IMAGE_NAME}" --name "${CLUSTER_NAME}"
 
 echo
 echo "Applying Redis ConfigMap..."
-
 kubectl apply -f "${K8S_DIR}/redis-configmap.yaml"
 
 echo
 echo "Applying Redis Secret..."
-
 kubectl apply -f "${K8S_DIR}/redis-secret.yaml"
 
 echo
 echo "Applying Redis PVC..."
-
 kubectl apply -f "${K8S_DIR}/redis-pvc.yaml"
 
 echo
 echo "Applying Redis Deployment..."
-
 kubectl apply -f "${K8S_DIR}/redis-deployment.yaml"
 
 echo
 echo "Applying Redis Service..."
-
 kubectl apply -f "${K8S_DIR}/redis-service.yaml"
 
 echo
@@ -122,12 +145,10 @@ kubectl exec deployment/redis -- redis-cli ping
 
 echo
 echo "Applying FastAPI Deployment..."
-
 kubectl apply -f "${K8S_DIR}/deployment.yaml"
 
 echo
 echo "Applying FastAPI ClusterIP Service..."
-
 kubectl apply -f "${K8S_DIR}/service.yaml"
 
 echo
@@ -136,18 +157,23 @@ echo "Waiting for FastAPI Deployment..."
 kubectl rollout status deployment/python-api --timeout=120s
 
 echo
+echo "Applying FastAPI Ingress..."
+
+kubectl apply -f "${K8S_DIR}/ingress.yaml"
+
+echo
 echo "Current Kubernetes resources:"
 
-kubectl get pods,services,deployments,pvc
+kubectl get pods,services,deployments,pvc,ingress
 
 echo
 echo "========================================"
 echo " Startup complete"
 echo "========================================"
 echo
-echo "FastAPI is currently exposed only inside Kubernetes."
+echo "FastAPI:"
+echo "  http://localhost/api"
 echo
-echo "For temporary local access, run:"
-echo
-echo "  kubectl port-forward service/python-api 8080:80"
+echo "Swagger UI:"
+echo "  http://localhost/api/docs"
 echo
