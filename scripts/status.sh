@@ -4,7 +4,7 @@ set -e
 
 echo
 echo "========================================"
-echo " Redis Assignment - Kubernetes Status"
+echo " Redis Assignment - Helm Status"
 echo "========================================"
 echo
 
@@ -18,6 +18,10 @@ kind get clusters
 echo
 echo "Kubernetes nodes:"
 kubectl get nodes
+
+echo
+echo "Helm releases:"
+helm list
 
 echo
 echo "Application Pods:"

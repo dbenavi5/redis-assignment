@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-api
+
+spec:
+  replicas: {{ .Values.pythonApi.replicaCount }}
+
+  selector:
+    matchLabels:
+      app: python-api
+
+  template:
+    metadata:
+      labels:
+        app: python-api
+
+    spec:
+      containers:
+        - name: python-api
+
+          image: "{{ .Values.pythonApi.image.repository }}:{{ .Values.pythonApi.image.tag }}"
+
+          imagePullPolicy: {{ .Values.pythonApi.image.pullPolicy }}
+
+          ports:
+            - containerPort: {{ .Values.pythonApi.service.targetPort }}
+
+          envFrom:
+            - configMapRef:
+                name: redis-cm
+
+            - secretRef:
+                name: redis-secret

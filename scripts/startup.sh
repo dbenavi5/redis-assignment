@@ -4,14 +4,16 @@ set -e
 
 CLUSTER_NAME="redis-cluster"
 IMAGE_NAME="python-api:latest"
+RELEASE_NAME="redis-assignment"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 K8S_DIR="${PROJECT_ROOT}/k8s"
+HELM_CHART="${PROJECT_ROOT}/helm/redis-assignment"
 
 echo
 echo "========================================"
-echo " Redis Assignment - Kubernetes Startup"
+echo " Redis Assignment - Helm Startup"
 echo "========================================"
 echo
 
@@ -21,7 +23,7 @@ echo
 
 echo "Checking required commands..."
 
-for command in docker kind kubectl; do
+for command in docker kind kubectl helm; do
     if ! command -v "${command}" >/dev/null 2>&1; then
         echo "ERROR: ${command} is not installed or not available in PATH."
         exit 1
@@ -72,8 +74,7 @@ echo "Checking NGINX Ingress Controller..."
 
 if ! kubectl get namespace ingress-nginx >/dev/null 2>&1; then
     echo "ERROR: ingress-nginx is not installed."
-    echo
-    echo "Install the NGINX Ingress Controller before running startup.sh."
+    echo "Install ingress-nginx before running this script."
     exit 1
 fi
 
@@ -111,59 +112,30 @@ echo "Found Docker image '${IMAGE_NAME}'."
 echo
 echo "Loading FastAPI image into kind..."
 
-kind load docker-image "${IMAGE_NAME}" --name "${CLUSTER_NAME}"
+kind load docker-image "${IMAGE_NAME}" \
+    --name "${CLUSTER_NAME}"
 
 echo
-echo "Applying Redis ConfigMap..."
-kubectl apply -f "${K8S_DIR}/redis-configmap.yaml"
+echo "Linting Helm chart..."
+
+helm lint "${HELM_CHART}"
 
 echo
-echo "Applying Redis Secret..."
-kubectl apply -f "${K8S_DIR}/redis-secret.yaml"
+echo "Deploying application with Helm..."
+
+helm upgrade \
+    --install \
+    "${RELEASE_NAME}" \
+    "${HELM_CHART}" \
+    --wait \
+    --timeout 2m
 
 echo
-echo "Applying Redis PVC..."
-kubectl apply -f "${K8S_DIR}/redis-pvc.yaml"
-
-echo
-echo "Applying Redis Deployment..."
-kubectl apply -f "${K8S_DIR}/redis-deployment.yaml"
-
-echo
-echo "Applying Redis Service..."
-kubectl apply -f "${K8S_DIR}/redis-service.yaml"
-
-echo
-echo "Waiting for Redis Deployment..."
-
-kubectl rollout status deployment/redis --timeout=120s
-
-echo
-echo "Testing Redis..."
-
-kubectl exec deployment/redis -- redis-cli ping
-
-echo
-echo "Applying FastAPI Deployment..."
-kubectl apply -f "${K8S_DIR}/deployment.yaml"
-
-echo
-echo "Applying FastAPI ClusterIP Service..."
-kubectl apply -f "${K8S_DIR}/service.yaml"
-
-echo
-echo "Waiting for FastAPI Deployment..."
-
-kubectl rollout status deployment/python-api --timeout=120s
-
-echo
-echo "Applying FastAPI Ingress..."
-
-kubectl apply -f "${K8S_DIR}/ingress.yaml"
+echo "Helm release:"
+helm list
 
 echo
 echo "Current Kubernetes resources:"
-
 kubectl get pods,services,deployments,pvc,ingress
 
 echo
