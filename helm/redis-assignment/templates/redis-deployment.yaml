@@ -15,6 +15,10 @@ spec:
       labels:
         app: redis
 
+        {{- if and .Values.istio.enabled .Values.istio.sidecarInjection }}
+        sidecar.istio.io/inject: "true"
+        {{- end }}
+
     spec:
       containers:
         - name: redis
@@ -22,7 +26,8 @@ spec:
           image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
 
           ports:
-            - containerPort: {{ .Values.redis.port }}
+            - name: tcp-redis
+              containerPort: {{ .Values.redis.port }}
 
           command:
             - redis-server

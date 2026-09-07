@@ -10,5 +10,6 @@ spec:
     app: python-api
 
   ports:
-    - port: {{ .Values.pythonApi.service.port }}
+    - name: http
+      port: {{ .Values.pythonApi.service.port }}
       targetPort: {{ .Values.pythonApi.service.targetPort }}

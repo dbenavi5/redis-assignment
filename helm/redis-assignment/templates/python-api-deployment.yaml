@@ -15,6 +15,10 @@ spec:
       labels:
         app: python-api
 
+        {{- if and .Values.istio.enabled .Values.istio.sidecarInjection }}
+        sidecar.istio.io/inject: "true"
+        {{- end }}
+
     spec:
       containers:
         - name: python-api
@@ -24,7 +28,8 @@ spec:
           imagePullPolicy: {{ .Values.pythonApi.image.pullPolicy }}
 
           ports:
-            - containerPort: {{ .Values.pythonApi.service.targetPort }}
+            - name: http
+              containerPort: {{ .Values.pythonApi.service.targetPort }}
 
           envFrom:
             - configMapRef:

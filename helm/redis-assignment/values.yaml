@@ -45,3 +45,16 @@ ingress:
   path: /api(/|$)(.*)
 
   pathType: ImplementationSpecific
+
+
+istio:
+  enabled: true
+
+  sidecarInjection: true
+
+  gateway:
+    enabled: true
+    host: "*"
+
+  mtls:
+    redisStrict: true

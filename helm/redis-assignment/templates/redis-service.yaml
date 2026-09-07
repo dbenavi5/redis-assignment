@@ -10,5 +10,6 @@ spec:
     app: redis
 
   ports:
-    - port: {{ .Values.redis.service.port }}
+    - name: tcp-redis
+      port: {{ .Values.redis.service.port }}
       targetPort: {{ .Values.redis.service.targetPort }}

@@ -1,0 +1,21 @@
+{{- if and .Values.istio.enabled .Values.istio.gateway.enabled }}
+
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: fastapi-istio-gateway
+
+spec:
+  selector:
+    istio: ingressgateway
+
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+
+      hosts:
+        - {{ .Values.istio.gateway.host | quote }}
+
+{{- end }}
