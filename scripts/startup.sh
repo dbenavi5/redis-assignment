@@ -13,7 +13,7 @@ ARGOCD_APP="${PROJECT_ROOT}/argocd/application.yaml"
 
 echo
 echo "========================================"
-echo " Redis Assignment - Argo CD Startup"
+echo " Redis Assignment - Istio GitOps Startup"
 echo "========================================"
 echo
 
@@ -23,7 +23,7 @@ echo
 
 echo "Checking required commands..."
 
-for command in docker kind kubectl argocd; do
+for command in docker kind kubectl argocd istioctl; do
     if ! command -v "${command}" >/dev/null 2>&1; then
         echo "ERROR: ${command} is not installed or not available in PATH."
         exit 1
@@ -79,15 +79,13 @@ fi
 kubectl rollout status \
     deployment/ingress-nginx-controller \
     -n ingress-nginx \
-    --timeout=120s
+    --timeout=180s
 
 echo
 echo "Checking Argo CD..."
 
 if ! kubectl get namespace argocd >/dev/null 2>&1; then
     echo "ERROR: Argo CD is not installed."
-    echo
-    echo "Install Argo CD before running this script."
     exit 1
 fi
 
@@ -100,6 +98,36 @@ kubectl rollout status \
     deployment/argocd-repo-server \
     -n argocd \
     --timeout=180s
+
+echo
+echo "Checking Istio..."
+
+if ! kubectl get namespace istio-system >/dev/null 2>&1; then
+    echo "ERROR: Istio is not installed."
+    echo
+    echo "Install it with:"
+    echo "istioctl install --set profile=default -y"
+    exit 1
+fi
+
+kubectl rollout status \
+    deployment/istiod \
+    -n istio-system \
+    --timeout=180s
+
+if kubectl get deployment \
+    istio-ingressgateway \
+    -n istio-system >/dev/null 2>&1; then
+
+    kubectl rollout status \
+        deployment/istio-ingressgateway \
+        -n istio-system \
+        --timeout=180s
+
+else
+    echo "ERROR: Istio ingress gateway was not found."
+    exit 1
+fi
 
 echo
 echo "Checking local FastAPI image..."
@@ -122,7 +150,7 @@ kind load docker-image \
     --name "${CLUSTER_NAME}"
 
 echo
-echo "Applying Argo CD Application..."
+echo "Applying Argo CD Application bootstrap..."
 
 kubectl apply -f "${ARGOCD_APP}"
 
@@ -136,20 +164,34 @@ echo "Argo CD Application:"
 argocd app get "${ARGO_APP_NAME}" || true
 
 echo
+echo "Istio proxy status:"
+istioctl proxy-status || true
+
+echo
 echo "Current Kubernetes resources:"
 kubectl get pods,services,deployments,pvc,ingress
 
 echo
+echo "Istio resources:"
+kubectl get \
+    gateway.networking.istio.io,virtualservice,peerauthentication \
+    2>/dev/null || true
+
+echo
 echo "========================================"
-echo " GitOps bootstrap complete"
+echo " Istio GitOps bootstrap complete"
 echo "========================================"
 echo
-echo "Application:"
+echo "NGINX application route:"
 echo "  http://localhost/api"
 echo
 echo "Swagger:"
 echo "  http://localhost/api/docs"
 echo
-echo "Normal deployments should now happen"
-echo "through Git commit + git push."
+echo "For the Istio Gateway route, run:"
+echo
+echo "kubectl port-forward service/istio-ingressgateway -n istio-system 8081:80"
+echo
+echo "Then use:"
+echo "  http://localhost:8081/api"
 echo

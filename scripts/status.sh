@@ -6,7 +6,7 @@ ARGO_APP_NAME="redis-assignment"
 
 echo
 echo "========================================"
-echo " Redis Assignment - GitOps Status"
+echo " Redis Assignment - Istio GitOps Status"
 echo "========================================"
 echo
 
@@ -42,7 +42,7 @@ echo "PersistentVolumeClaims:"
 kubectl get pvc
 
 echo
-echo "Ingress resources:"
+echo "NGINX Ingress resources:"
 kubectl get ingress
 
 echo
@@ -52,6 +52,26 @@ kubectl get pods -n ingress-nginx
 echo
 echo "Argo CD Pods:"
 kubectl get pods -n argocd
+
+echo
+echo "Istio Control Plane:"
+kubectl get pods -n istio-system
+
+echo
+echo "Istio Gateways:"
+kubectl get gateway.networking.istio.io || true
+
+echo
+echo "Istio VirtualServices:"
+kubectl get virtualservice || true
+
+echo
+echo "Istio PeerAuthentication policies:"
+kubectl get peerauthentication || true
+
+echo
+echo "Istio proxy status:"
+istioctl proxy-status || true
 
 echo
 echo "EndpointSlices:"
