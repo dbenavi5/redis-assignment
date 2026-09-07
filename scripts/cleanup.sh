@@ -2,23 +2,27 @@
 
 set -e
 
-RELEASE_NAME="redis-assignment"
+ARGO_APP_NAME="redis-assignment"
 
 echo
 echo "========================================"
-echo " Redis Assignment - Helm Cleanup"
+echo " Redis Assignment - Argo CD Cleanup"
 echo "========================================"
 echo
 
-if helm status "${RELEASE_NAME}" >/dev/null 2>&1; then
+if kubectl get application \
+    "${ARGO_APP_NAME}" \
+    -n argocd >/dev/null 2>&1; then
 
-    echo "Uninstalling Helm release '${RELEASE_NAME}'..."
+    echo "Deleting Argo CD Application '${ARGO_APP_NAME}'..."
 
-    helm uninstall "${RELEASE_NAME}"
+    kubectl delete application \
+        "${ARGO_APP_NAME}" \
+        -n argocd
 
 else
 
-    echo "Helm release '${RELEASE_NAME}' is not installed."
+    echo "Argo CD Application '${ARGO_APP_NAME}' does not exist."
 
 fi
 
@@ -28,5 +32,6 @@ echo " Application cleanup complete"
 echo "========================================"
 echo
 echo "The kind cluster was NOT deleted."
-echo "The NGINX Ingress Controller was NOT deleted."
+echo "NGINX Ingress Controller was NOT deleted."
+echo "Argo CD itself was NOT deleted."
 echo

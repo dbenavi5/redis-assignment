@@ -2,9 +2,11 @@
 
 set -e
 
+ARGO_APP_NAME="redis-assignment"
+
 echo
 echo "========================================"
-echo " Redis Assignment - Helm Status"
+echo " Redis Assignment - GitOps Status"
 echo "========================================"
 echo
 
@@ -20,8 +22,8 @@ echo "Kubernetes nodes:"
 kubectl get nodes
 
 echo
-echo "Helm releases:"
-helm list
+echo "Argo CD Application:"
+argocd app get "${ARGO_APP_NAME}" || true
 
 echo
 echo "Application Pods:"
@@ -46,6 +48,10 @@ kubectl get ingress
 echo
 echo "NGINX Ingress Controller:"
 kubectl get pods -n ingress-nginx
+
+echo
+echo "Argo CD Pods:"
+kubectl get pods -n argocd
 
 echo
 echo "EndpointSlices:"
