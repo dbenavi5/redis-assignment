@@ -15,10 +15,12 @@ spec:
   http:
     - match:
         - uri:
-            prefix: /api
+            regex: "^/api(/|$)(.*)"
 
       rewrite:
-        uri: /
+        uriRegexRewrite:
+          match: "^/api(/|$)(.*)"
+          rewrite: "/\\2"
 
       route:
         - destination:
